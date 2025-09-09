@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- 引入 Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- 引入 Font Awesome -->
+  <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+
+  <!-- 配置 Tailwind 颜色和字体 -->
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: '#4F46E5', // 主色调：靛蓝色
+            secondary: '#10B981', // 辅助色：薄荷绿
+            accent: '#8B5CF6', // 强调色：紫色
+            dark: '#1F2937', // 深色
+            light: '#F9FAFB', // 浅色
+          },
+          fontFamily: {
+            inter: ['Inter', 'system-ui', 'sans-serif'],
+          },
+        },
+      }
+    }
+  </script>
+
+  <!-- 自定义工具类 -->
+  <style type="text/tailwindcss">
+    @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+      .gradient-bg {
+        background: linear-gradient(135deg, #4F46E5 0%, #8B5CF6 100%);
+      }
+      .card-shadow {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
+      }
+      .btn-hover {
+        transition: all 0.3s ease;
+      }
+      .btn-hover:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+      }
+    }
+  </style>
+
+  <title>数据处理系统</title>
+</head>
+
+<body class="bg-gray-50 min-h-screen font-inter">
+  <!-- 顶部导航 -->
+  <header class="gradient-bg text-white shadow-md">
+    <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+      <div class="flex items-center space-x-2">
+        <i class="fa fa-database text-2xl"></i>
+        <h1 class="text-xl font-bold">Excel 数据处理工具</h1>
+      </div>
+      <div class="hidden md:flex items-center space-x-4">
+        <a href="#" class="hover:text-gray-200 transition-colors"><i class="fa fa-question-circle mr-1"></i>帮助</a>
+        <a href="#" class="hover:text-gray-200 transition-colors"><i class="fa fa-file-text-o mr-1"></i>文档</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- 主内容区 -->
+  <main class="container mx-auto px-4 py-8 max-w-4xl">
+    <!-- 介绍卡片 -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8 card-shadow">
+      <div class="flex items-start">
+        <div class="bg-primary/10 p-3 rounded-full mr-4">
+          <i class="fa fa-info-circle text-primary text-xl"></i>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold text-dark mb-2">关于此工具</h2>
+          <p class="text-gray-600">上传Excel文件进行数据处理，系统将自动完成筛选、清洗和格式化，生成标准化的结果文件。</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- 文件上传卡片 -->
+    <div class="bg-white rounded-xl shadow-lg p-6 mb-8 card-shadow transition-all duration-300 hover:shadow-xl">
+      <div class="flex items-center mb-4">
+        <div class="bg-primary/10 p-3 rounded-full mr-4">
+          <i class="fa fa-upload text-primary text-xl"></i>
+        </div>
+        <h2 class="text-lg font-semibold text-dark">文件上传</h2>
+      </div>
+
+      <div class="upload-section">
+        <div class="mb-6">
+          <label for="excel-file" class="block text-sm font-medium text-gray-700 mb-2">
+            <i class="fa fa-file-excel-o mr-1"></i>选择 Excel 文件
+          </label>
+          <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-lg hover:border-primary transition-colors">
+            <div class="space-y-1 text-center">
+              <i class="fa fa-cloud-upload text-4xl text-gray-400 mb-2"></i>
+              <div class="flex text-sm text-gray-600">
+                <label for="excel-file" class="relative cursor-pointer bg-white rounded-md font-medium text-primary hover:text-primary/80 focus-within:outline-none">
+                  <span>点击上传文件</span>
+                  <input id="excel-file" name="excel-file" type="file" accept=".xlsx" class="sr-only">
+                </label>
+                <p class="pl-1">或拖拽文件到此处</p>
+              </div>
+              <p class="text-xs text-gray-500">
+                支持 XLSX 格式文件，最大 100MB
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex justify-center">
+          <button id="upload-btn" class="btn bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-lg shadow-md btn-hover flex items-center">
+            <i class="fa fa-cog mr-2"></i>
+            开始处理
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- 进度提示与结果区域 -->
+    <div id="result-section" class="bg-white rounded-xl shadow-lg p-6 mb-8 card-shadow hidden">
+      <div class="flex items-center mb-4">
+        <div class="bg-secondary/10 p-3 rounded-full mr-4">
+          <i class="fa fa-spinner text-secondary text-xl"></i>
+        </div>
+        <h2 class="text-lg font-semibold text-dark">处理进度</h2>
+      </div>
+
+      <div id="progress-container" class="w-full bg-gray-200 rounded-full h-4 mb-4">
+        <div id="progress-bar" class="bg-secondary h-4 rounded-full" style="width: 0%"></div>
+      </div>
+
+      <div id="progress-status" class="text-gray-600 flex items-center">
+        <i class="fa fa-circle-o-notch fa-spin mr-2"></i>
+        等待上传文件...
+      </div>
+
+      <!-- 结果下载按钮 -->
+      <div id="download-container" class="mt-6 hidden">
+        <a href="#" id="download-link" class="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-secondary hover:bg-secondary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-secondary btn-hover">
+          <i class="fa fa-download mr-2"></i>
+          下载处理结果
+        </a>
+      </div>
+    </div>
+
+    <!-- 错误提示区域 -->
+    <div id="error-section" class="bg-white rounded-xl shadow-lg p-6 mb-8 card-shadow hidden">
+      <div class="flex items-center mb-4">
+        <div class="bg-red-100 p-3 rounded-full mr-4">
+          <i class="fa fa-exclamation-triangle text-red-500 text-xl"></i>
+        </div>
+        <h2 class="text-lg font-semibold text-red-700">处理错误</h2>
+      </div>
+
+      <div id="error-msg" class="text-red-600"></div>
+    </div>
+
+    <!-- 处理成功提示 -->
+    <div id="success-section" class="bg-white rounded-xl shadow-lg p-6 mb-8 card-shadow hidden">
+      <div class="flex items-center mb-4">
+        <div class="bg-green-100 p-3 rounded-full mr-4">
+          <i class="fa fa-check-circle text-green-500 text-xl"></i>
+        </div>
+        <h2 class="text-lg font-semibold text-green-700">处理完成</h2>
+      </div>
+
+      <div class="mb-4">
+        <p class="text-gray-600">文件已成功处理，点击下方按钮下载结果：</p>
+      </div>
+
+      <a href="#" id="success-download-link" class="inline-flex items-center px-5 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 btn-hover">
+        <i class="fa fa-download mr-2"></i>
+        下载处理结果
+      </a>
+    </div>
+  </main>
+
+  <!-- 页脚 -->
+  <footer class="bg-dark text-white py-8">
+    <div class="container mx-auto px-4">
+      <div class="flex flex-col md:flex-row justify-between items-center">
+        <div class="mb-4 md:mb-0">
+          <div class="flex items-center">
+            <i class="fa fa-database text-2xl mr-2"></i>
+            <span class="text-lg font-bold">Excel 数据处理工具</span>
+          </div>
+          <p class="text-gray-400 text-sm mt-2">高效处理您的 Excel 数据</p>
+        </div>
+
+        <div class="flex space-x-6">
+          <a href="#" class="text-gray-400 hover:text-white transition-colors">
+            <i class="fa fa-github text-xl"></i>
+          </a>
+          <a href="#" class="text-gray-400 hover:text-white transition-colors">
+            <i class="fa fa-twitter text-xl"></i>
+          </a>
+          <a href="#" class="text-gray-400 hover:text-white transition-colors">
+            <i class="fa fa-linkedin text-xl"></i>
+          </a>
+        </div>
+      </div>
+
+      <div class="border-t border-gray-700 mt-6 pt-6 text-center text-gray-400 text-sm">
+        &copy; 2025 Excel 数据处理工具 | 保留所有权利
+      </div>
+    </div>
+  </footer>
+
+  <!-- 引入交互脚本 -->
+  <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+  <script>
+    // 增强版文件上传交互
+    document.addEventListener('DOMContentLoaded', function() {
+      const fileInput = document.getElementById('excel-file');
+      const uploadBtn = document.getElementById('upload-btn');
+      const resultSection = document.getElementById('result-section');
+      const progressBar = document.getElementById('progress-bar');
+      const progressStatus = document.getElementById('progress-status');
+      const downloadContainer = document.getElementById('download-container');
+      const downloadLink = document.getElementById('download-link');
+      const errorSection = document.getElementById('error-section');
+      const errorMsg = document.getElementById('error-msg');
+      const successSection = document.getElementById('success-section');
+      const successDownloadLink = document.getElementById('success-download-link');
+
+      // 文件选择反馈
+      fileInput.addEventListener('change', function() {
+        if (this.files && this.files[0]) {
+          const fileSize = (this.files[0].size / (1024 * 1024)).toFixed(2);
+          uploadBtn.classList.add('bg-secondary');
+          uploadBtn.classList.remove('bg-primary');
+          uploadBtn.innerHTML = '<i class="fa fa-cog mr-2"></i>处理 ' + this.files[0].name + ' (' + fileSize + ' MB)';
+        } else {
+          uploadBtn.classList.remove('bg-secondary');
+          uploadBtn.classList.add('bg-primary');
+          uploadBtn.innerHTML = '<i class="fa fa-cog mr-2"></i>开始处理';
+        }
+      });
+
+      // 上传按钮点击事件
+      uploadBtn.addEventListener('click', function() {
+        const file = fileInput.files[0];
+        if (!file) {
+          showError('请选择一个Excel文件');
+          return;
+        }
+
+        // 显示进度区域，隐藏其他区域
+        resultSection.classList.remove('hidden');
+        errorSection.classList.add('hidden');
+        successSection.classList.add('hidden');
+
+        // 重置进度条
+        progressBar.style.width = '0%';
+        progressStatus.innerHTML = '<i class="fa fa-circle-o-notch fa-spin mr-2"></i>正在上传文件...';
+
+        // 构建FormData
+        const formData = new FormData();
+        formData.append('file', file);
+
+        // 模拟进度更新（实际项目中可根据服务器反馈更新）
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+          progress += 5;
+          progressBar.style.width = progress + '%';
+
+          if (progress < 30) {
+            progressStatus.innerHTML = '<i class="fa fa-circle-o-notch fa-spin mr-2"></i>正在上传文件...';
+          } else if (progress < 60) {
+            progressStatus.innerHTML = '<i class="fa fa-circle-o-notch fa-spin mr-2"></i>正在解析数据...';
+          } else if (progress < 90) {
+            progressStatus.innerHTML = '<i class="fa fa-circle-o-notch fa-spin mr-2"></i>正在处理数据...';
+          }
+
+          if (progress >= 100) {
+            clearInterval(progressInterval);
+          }
+        }, 200);
+
+        // 调用Flask接口
+        fetch('/upload', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('处理失败: ' + response.statusText);
+          }
+          return response.blob();
+        })
+        .then(blob => {
+          // 处理成功，生成下载链接
+          progressBar.className = 'bg-green-500 h-4 rounded-full';
+          progressStatus.innerHTML = '<i class="fa fa-check-circle text-green-500 mr-2"></i>处理完成！';
+
+          // 显示成功区域
+          setTimeout(() => {
+            resultSection.classList.add('hidden');
+            successSection.classList.remove('hidden');
+
+            const url = URL.createObjectURL(blob);
+            successDownloadLink.href = url;
+            successDownloadLink.download = '处理结果.xlsx';
+          }, 1000);
+        })
+        .catch(error => {
+          // 处理失败，显示错误信息
+          clearInterval(progressInterval);
+          showError(error.message);
+        });
+      });
+
+      // 显示错误信息
+      function showError(message) {
+        errorMsg.textContent = message;
+        errorSection.classList.remove('hidden');
+        resultSection.classList.add('hidden');
+        successSection.classList.add('hidden');
+      }
+    });
+  </script>
+</body>
+</html>
